@@ -1,0 +1,13 @@
+app:
+    base:
+        url: http://universities.hipolabs.com/search
+spring:
+    application:
+        name: university-app
+server:
+    port: 8090
+
+student:
+    app:
+        base:
+            url: https://crudcrud.com/api/424cda5be9b44ced85751ed2c8d0ae6b/students
