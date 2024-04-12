@@ -2,50 +2,86 @@ package com.education.universityapp.controller;
 
 import com.education.universityapp.model.Student;
 import com.education.universityapp.service.StudentsService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 
 @Controller
-//@RequestMapping("/students")
 public class StudentController {
 
     @Autowired
     private StudentsService studentsService;
 
-    @GetMapping("/students")
-    public String getStudents(Model model) {
+    @GetMapping(value = "/students", produces = {MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public Object getStudents(HttpServletRequest request) {
         List<Student> studentList = studentsService.getStudents();
-        model.addAttribute("students", studentList);
-        return "students";
+        String acceptHeader = request.getHeader(HttpHeaders.ACCEPT);
+        if (acceptHeader != null && acceptHeader.contains("application/json")) {
+            return ResponseEntity.ok(studentList);
+        } else {
+            ModelAndView modelAndView = new ModelAndView("students");
+            modelAndView.addObject("students", studentList);
+            return modelAndView;
+        }
     }
 
     @GetMapping("/addStudent")
-    public String showAddStudentForm(Model model) {
-        model.addAttribute("student", new Student());
-        return "addStudent";
+    public Object showAddStudentForm(HttpServletRequest request) {
+        String acceptHeader = request.getHeader(HttpHeaders.ACCEPT);
+        if (acceptHeader != null && acceptHeader.contains("application/json")) {
+            return ResponseEntity.ok();
+        } else {
+            ModelAndView modelAndView = new ModelAndView("addStudent");
+            modelAndView.addObject("student", new Student());
+            return modelAndView;
+        }
     }
 
     @PostMapping("/addStudent")
-    public String addUser(Student student) {
+    public Object addUser(HttpServletRequest request, Student student) {
         studentsService.addStudent(student);
-        return "redirect:/students";
+
+        String acceptHeader = request.getHeader(HttpHeaders.ACCEPT);
+        if (acceptHeader != null && acceptHeader.contains("application/json")) {
+            return ResponseEntity.ok();
+        } else {
+            return "redirect:/students";
+        }
     }
 
     @GetMapping("/updateStudent/{email}")
-    public String showUpdateStudentForm(@PathVariable("email") String email, Model model) {
+    public Object showUpdateStudentForm(HttpServletRequest request,
+                                        @PathVariable("email") String email) {
         Student student = studentsService.getStudent(email);
-        model.addAttribute("student", student);
-        return "updateStudent";
+
+        String acceptHeader = request.getHeader(HttpHeaders.ACCEPT);
+        if (acceptHeader != null && acceptHeader.contains("application/json")) {
+            return ResponseEntity.ok(student);
+        } else {
+            ModelAndView modelAndView = new ModelAndView("updateStudent");
+            modelAndView.addObject("student", student);
+            return modelAndView;
+        }
     }
 
-    @PostMapping("/updateStudent")
-    public String updateStudent(Student student) {
+    @PostMapping(value = "/updateStudent")
+    public Object updateStudent(HttpServletRequest request, Student student) {
         studentsService.updateStudent(student);
-        return "redirect:/students";
+
+        String acceptHeader = request.getHeader(HttpHeaders.ACCEPT);
+        if (acceptHeader != null && acceptHeader.contains("application/json")) {
+            return ResponseEntity.ok(student);
+        } else {
+            return "redirect:/students";
+        }
     }
 
     @GetMapping("/loadStudents")
@@ -56,9 +92,15 @@ public class StudentController {
         return "students";
     }
 
-    @GetMapping("/deleteStudent/{email}")
-    public String deleteStudent(@PathVariable("email") String email) {
+    @DeleteMapping("/deleteStudent/{email}")
+    public Object deleteStudent(HttpServletRequest request, @PathVariable("email") String email) {
         studentsService.deleteStudent(email);
-        return "redirect:/students";
+
+        String acceptHeader = request.getHeader(HttpHeaders.ACCEPT);
+        if (acceptHeader != null && acceptHeader.contains("application/json")) {
+            return ResponseEntity.ok().build();
+        } else {
+            return "redirect:/students";
+        }
     }
 }
